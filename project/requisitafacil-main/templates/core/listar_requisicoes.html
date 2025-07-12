@@ -53,7 +53,7 @@
                     <th>Ações</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody id="requisicoes-tbody">
                 {% for req in requisicoes %}
                 <tr>
                     <td><a href="{% url 'core:detalhe_requisicao' req.id %}">{{ req.request_code }}</a></td>
@@ -113,4 +113,25 @@
     </div>
     {% endif %}
 </main>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Conecta ao WebSocket do FastAPI
+    const ws = new WebSocket('ws://localhost:8001/ws/updates');
+    ws.onmessage = function(event) {
+        // Quando receber mensagem, recarrega a lista de requisições via AJAX
+        fetch(window.location.href, {headers: {'X-Requested-With': 'XMLHttpRequest'}})
+            .then(response => response.text())
+            .then(html => {
+                // Extrai apenas o tbody da resposta
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const newTbody = doc.querySelector('#requisicoes-tbody');
+                if (newTbody) {
+                    document.querySelector('#requisicoes-tbody').innerHTML = newTbody.innerHTML;
+                }
+            });
+    };
+</script>
 {% endblock %}

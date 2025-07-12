@@ -9,6 +9,7 @@ from .forms import RequestForm, CustomUserCreationForm, RequestItemFormSet
 from .models import Request, Role, RequestStatus, RequestItem
 
 from django.views.decorators.http import require_POST
+import requests
 
 # --- Funções Auxiliares de Permissão ---
 # Usamos essas funções para verificar o papel do usuário logado
@@ -59,6 +60,12 @@ def criar_requisicao(request):
                 requisicao.save()
                 formset.instance = requisicao
                 formset.save()
+
+            # Notifica FastAPI para atualizar clientes
+            try:
+                requests.post('http://localhost:8001/notify', json={"action": "created"})
+            except Exception:
+                pass
 
             messages.success(request, 'Requisição criada com sucesso!')
             return redirect('core:listar_requisicoes')
@@ -299,6 +306,12 @@ def almoxarife_atender_requisicao(request, pk):
                 if obs_finais:
                     requisicao.observations = f"{requisicao.observations or ''}\n\n--- Observações do Atendimento ---\n{obs_finais}"
                 requisicao.save()
+
+            # Notifica FastAPI para atualizar clientes
+            try:
+                requests.post('http://localhost:8001/notify', json={"action": "finalized"})
+            except Exception:
+                pass
 
             messages.success(request, f'Requisição {requisicao.request_code} finalizada com sucesso!')
             return redirect('core:listar_requisicoes')

@@ -1,84 +1,215 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Requisita Facil{% endblock %}
+{% block title %}Dashboard do Gestor{% endblock %}
 
 {% block content %}
-    <!-- Sidebar fixa (vem do base.html ou pode ser incluída aqui se necessário) -->
-    <h1>Painel do Gerente</h1>
-    <p>Visão geral do sistema de requisições</p>
-    <div class="cards-container">
-        <div class="card">
-            <div class="card-title">Requisições Pendentes <span class="card-icon">&#128337;</span></div>
-            <div class="card-value">{{ pendentes }}</div>
-            <div class="card-desc">Aguardando aprovação</div>
-        </div>
-        <div class="card">
-            <div class="card-title">Aprovadas Hoje <span class="card-icon">&#10003;</span></div>
-            <div class="card-value">{{ aprovadas_hoje }}</div>
-            <div class="card-desc">Requisições processadas</div>
-        </div>
-        <div class="card">
-            <div class="card-title">Total do Mês <span class="card-icon">&#128196;</span></div>
-            <div class="card-value">{{ total_mes }}</div>
-            <div class="card-desc">Requisições criadas</div>
-        </div>
-        <div class="card">
-            <div class="card-title">Departamentos Ativos <span class="card-icon">&#128101;</span></div>
-            <div class="card-value">{{ departamentos_ativos }}</div>
-            <div class="card-desc">Fazendo requisições</div>
+<h1 class="dashboard-title">Painel do Gestor</h1>
+<p class="dashboard-desc">Visão geral e análise das requisições da loja</p>
+
+<!-- KPIs em Cards -->
+<div class="cards-container mb-4">
+    <div class="card">
+        <div class="card-title">Requisições Pendentes</div>
+        <div class="card-value">{{ pendentes }}</div>
+        <div class="card-desc">Aguardando aprovação</div>
+    </div>
+    <div class="card">
+        <div class="card-title">Aprovadas Hoje</div>
+        <div class="card-value">{{ aprovadas_hoje }}</div>
+        <div class="card-desc">Requisições processadas</div>
+    </div>
+    <div class="card">
+        <div class="card-title">Total do Mês</div>
+        <div class="card-value">{{ total_mes }}</div>
+        <div class="card-desc">Requisições criadas</div>
+    </div>
+    <div class="card">
+        <div class="card-title">Departamentos Ativos</div>
+        <div class="card-value">{{ departamentos_ativos }}</div>
+        <div class="card-desc">Fazendo requisições</div>
+    </div>
+    <div class="card">
+        <div class="card-title">Urgentes Pendentes</div>
+        <div class="card-value">{{ urgentes_pendentes }}</div>
+        <div class="card-desc">Requisições urgentes aguardando</div>
+    </div>
+    <div class="card">
+        <div class="card-title">Tempo Médio Atendimento</div>
+        <div class="card-value">{{ tempo_medio_str }}</div>
+        <div class="card-desc">Das aprovadas</div>
+    </div>
+    <div class="card">
+        <div class="card-title">% Atendidas no Prazo</div>
+        <div class="card-value">{{ pct_no_prazo }}%</div>
+        <div class="card-desc">Até 24h</div>
+    </div>
+    <div class="card">
+        <div class="card-title">Setor Top</div>
+        <div class="card-value">{{ setor_top }}</div>
+        <div class="card-desc">Mais requisitou</div>
+    </div>
+    <div class="card">
+        <div class="card-title">Usuário Top</div>
+        <div class="card-value">{{ user_top }}</div>
+        <div class="card-desc">Mais requisitou</div>
+    </div>
+</div>
+
+<!-- Gráficos -->
+<div class="row mb-4">
+    <div class="col-md-6 mb-4">
+        <div class="card p-3">
+            <h5 class="mb-3">Requisições por Setor (30 dias)</h5>
+            <canvas id="setoresChart"></canvas>
         </div>
     </div>
+    <div class="col-md-6 mb-4">
+        <div class="card p-3">
+            <h5 class="mb-3">Distribuição por Status</h5>
+            <canvas id="statusChart"></canvas>
+        </div>
+    </div>
+    <div class="col-md-6 mb-4">
+        <div class="card p-3">
+            <h5 class="mb-3">Evolução Diária (Mês)</h5>
+            <canvas id="evolucaoChart"></canvas>
+        </div>
+    </div>
+    <div class="col-md-6 mb-4">
+        <div class="card p-3">
+            <h5 class="mb-3">Top 5 Usuários</h5>
+            <canvas id="topUsersChart"></canvas>
+        </div>
+    </div>
+    <div class="col-md-6 mb-4">
+        <div class="card p-3">
+            <h5 class="mb-3">Categorias Mais Requisitadas (30 dias)</h5>
+            <canvas id="categoriasChart"></canvas>
+        </div>
+    </div>
+</div>
 
-    <div class="table-wrapper">
-        <h2>Requisições Recentes</h2>
-        <p>Todas as requisições recentes você encontra aqui:</p>
-
-        <div class="table-responsive-wrapper">
-            <table class="table table-dark table-borderless table-hover">
-                <thead>
+<!-- Tabela de Requisições Recentes -->
+<div class="table-wrapper">
+    <h2>Requisições Recentes</h2>
+    <div class="table-responsive-wrapper">
+        <table class="table table-dark table-borderless table-hover">
+            <thead>
+                <tr>
+                    <th>Código</th>
+                    <th>Requisitante</th>
+                    <th>Setor</th>
+                    <th>Urgência</th>
+                    <th>Status</th>
+                    <th>Hora</th>
+                    <th>Observações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for req in requisicoes_do_dia %}
                     <tr>
-                        <th>Código</th>
-                        <th>Requisitante</th>
-                        <th>Setor</th>
-                        <th>Urgência</th>
-                        <th>Status</th>
-                        <th>Hora</th>
-                        <th>Observações</th>
+                        <td><a href="{% url 'core:detalhe_requisicao' req.id %}">{{ req.request_code }}</a></td>
+                        <td>{{ req.requester.get_full_name|default:req.requester.username }}</td>
+                        <td>{{ req.sector.name }}</td>
+                        <td>
+                            {% if req.urgency == 'URGENTE' %}
+                                <span class="badge bg-danger">{{ req.get_urgency_display }}</span>
+                            {% else %}
+                                <span class="badge bg-info">{{ req.get_urgency_display }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if req.status == 'PENDING' %}
+                                <span class="badge bg-warning">{{ req.get_status_display }}</span>
+                            {% elif req.status == 'APPROVED' %}
+                                <span class="badge bg-success">{{ req.get_status_display }}</span>
+                            {% else %}
+                                <span class="badge bg-secondary">{{ req.get_status_display }}</span>
+                            {% endif %}    
+                        </td>
+                        <td>{{ req.created_at|date:"H:i:s" }}</td>
+                        <td>{{ req.observations|truncatechars:50 }}</td>
                     </tr>
-                </thead>
-                <tbody>
-                    {% for req in requisicoes_do_dia %}
-                        <tr>
-                            <td><a href="{% url 'core:detalhe_requisicao' req.id %}">{{ req.request_code }}</a></td>
-                            <td>{{ req.requester.get_full_name|default:req.requester.username }}</td>
-                            <td>{{ req.sector.name }}</td>
-                            <td>
-                                {% if req.urgency == 'URGENTE' %}
-                                    <span class="badge bg-danger">{{ req.get_urgency_display }}</span>
-                                {% else %}
-                                    <span class="badge bg-info">{{ req.get_urgency_display }}</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                {% if req.status == 'PENDING' %}
-                                    <span class="badge bg-warning">{{ req.get_status_display }}</span>
-                                {% elif req.status == 'APPROVED' %}
-                                    <span class="badge bg-success">{{ req.get_status_display }}</span>
-                                {% else %}
-                                    <span class="badge bg-secondary">{{ req.get_status_display }}</span>
-                                {% endif %}    
-                            </td>
-                            <td>{{ req.created_at|date:"H:i:s" }}</td>
-                            <td>{{ req.observations|truncatechars:50 }}</td>
-                        </tr>
-                    {% empty %}
-                        <tr>
-                            <td colspan="7" class="text-center">Nenhuma Requisição encontrada</td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+                {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center">Nenhuma Requisição encontrada</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
+</div>
+
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Gráfico de barras: Requisições por Setor
+    new Chart(document.getElementById('setoresChart'), {
+        type: 'bar',
+        data: {
+            labels: {{ setores_labels|safe }},
+            datasets: [{
+                label: 'Requisições',
+                data: {{ setores_data|safe }},
+                backgroundColor: '#0a57e3',
+            }]
+        },
+        options: {responsive: true, plugins: {legend: {display: false}}}
+    });
+    // Gráfico de pizza: Distribuição por Status
+    new Chart(document.getElementById('statusChart'), {
+        type: 'pie',
+        data: {
+            labels: {{ status_labels|safe }},
+            datasets: [{
+                data: {{ status_data|safe }},
+                backgroundColor: ['#ffc107','#0a57e3','#28a745','#dc3545','#6c757d'],
+            }]
+        },
+        options: {responsive: true}
+    });
+    // Gráfico de linha: Evolução diária
+    new Chart(document.getElementById('evolucaoChart'), {
+        type: 'line',
+        data: {
+            labels: {{ evolucao_labels|safe }},
+            datasets: [{
+                label: 'Requisições',
+                data: {{ evolucao_data|safe }},
+                borderColor: '#0a57e3',
+                backgroundColor: 'rgba(10,87,227,0.1)',
+                fill: true,
+                tension: 0.3
+            }]
+        },
+        options: {responsive: true, plugins: {legend: {display: false}}}
+    });
+    // Gráfico de barras horizontal: Top 5 usuários
+    new Chart(document.getElementById('topUsersChart'), {
+        type: 'bar',
+        data: {
+            labels: {{ top_users_labels|safe }},
+            datasets: [{
+                label: 'Requisições',
+                data: {{ top_users_data|safe }},
+                backgroundColor: '#ffc107',
+            }]
+        },
+        options: {responsive: true, indexAxis: 'y', plugins: {legend: {display: false}}}
+    });
+    // Gráfico de barras horizontal: Categorias mais requisitadas
+    new Chart(document.getElementById('categoriasChart'), {
+        type: 'bar',
+        data: {
+            labels: {{ categorias_labels|safe }},
+            datasets: [{
+                label: 'Requisições',
+                data: {{ categorias_data|safe }},
+                backgroundColor: '#28a745',
+            }]
+        },
+        options: {responsive: true, indexAxis: 'y', plugins: {legend: {display: false}}}
+    });
+</script>
 {% endblock %}

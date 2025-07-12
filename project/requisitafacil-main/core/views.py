@@ -1,13 +1,14 @@
 from django.shortcuts import render,redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
-from django.db.models import Count, Q, ExpressionWrapper, F
+from django.db.models import Count, Q, ExpressionWrapper, F, Avg, DurationField, DateField, DateTimeField
 from datetime import timedelta
 from django.utils import timezone
 from django.db import transaction
 from .forms import RequestForm, CustomUserCreationForm, RequestItemFormSet
 from .models import Request, Role, RequestStatus, RequestItem
 from django.contrib.auth import get_user_model
+from django.db.models.functions import TruncDate
 
 from django.views.decorators.http import require_POST
 import requests
@@ -338,27 +339,106 @@ def almoxarife_atender_requisicao(request, pk):
     return render(request, 'core/almoxarife_atender_requisicao.html', context)
 
 
+def format_timedelta(td):
+    if not td:
+        return "N/A"
+    total_seconds = int(td.total_seconds())
+    hours, remainder = divmod(total_seconds, 3600)
+    minutes, _ = divmod(remainder, 60)
+    if hours > 0:
+        return f"{hours}h {minutes}min"
+    else:
+        return f"{minutes}min"
+
 @login_required
 @user_passes_test(is_gestor)
 def gestor_dashboard(request):
     today = timezone.localdate()
+    month_start = today.replace(day=1)
+    qs = Request.objects.all()
 
+    # KPIs
+    pendentes = qs.filter(status=RequestStatus.PENDING).count()
+    aprovadas_hoje = qs.filter(status=RequestStatus.APPROVED, updated_at__date=today).count()
+    total_mes = qs.filter(created_at__month=today.month, created_at__year=today.year).count()
+    departamentos_ativos = qs.values('sector').distinct().count()
+    urgentes_pendentes = qs.filter(status=RequestStatus.PENDING, urgency='URGENTE').count()
 
-    requisicoes_do_dia = Request.objects.all().order_by('-created_at')
+    # Tempo médio de atendimento (apenas aprovadas)
+    tempo_medio = qs.filter(status=RequestStatus.APPROVED, created_at__isnull=False, updated_at__isnull=False)
+    tempo_medio = tempo_medio.annotate(
+        tempo_espera=ExpressionWrapper(F('updated_at') - F('created_at'), output_field=DurationField())
+    ).aggregate(media=Avg('tempo_espera'))['media']
 
-    pendentes = Request.objects.filter(status=RequestStatus.PENDING).order_by().count()
-    aprovadas_hoje = Request.objects.filter(status=RequestStatus.APPROVED, updated_at__date=today).count()
-    total_mes = Request.objects.filter(created_at__month=today.month, created_at__year=today.year).count()
-    departamentos_ativos = Request.objects.values('sector').distinct().count()
+    # % atendidas no prazo (exemplo: menos de 24h)
+    atendidas_no_prazo = qs.filter(status=RequestStatus.APPROVED, created_at__isnull=False, updated_at__isnull=False)
+    atendidas_no_prazo = atendidas_no_prazo.annotate(
+        tempo_espera=ExpressionWrapper(F('updated_at') - F('created_at'), output_field=DurationField())
+    ).filter(tempo_espera__lte=timedelta(hours=24)).count()
+    total_aprovadas = qs.filter(status=RequestStatus.APPROVED).count()
+    pct_no_prazo = (atendidas_no_prazo / total_aprovadas * 100) if total_aprovadas else 0
 
-    context ={
-        'requisicoes_do_dia': requisicoes_do_dia,
+    # Gráfico: Requisições por setor (últimos 30 dias)
+    setores = qs.filter(created_at__gte=today - timedelta(days=30)).values('sector__name').annotate(total=Count('id')).order_by('-total')
+    setores_labels = [s['sector__name'] or 'N/A' for s in setores]
+    setores_data = [s['total'] for s in setores]
+
+    # Gráfico: Distribuição por status
+    status_dist = qs.values('status').annotate(total=Count('id'))
+    status_labels = [dict(RequestStatus.choices).get(s['status'], s['status']) for s in status_dist]
+    status_data = [s['total'] for s in status_dist]
+
+    # Gráfico: Evolução diária (linha)
+    evolucao = qs.filter(created_at__gte=month_start).annotate(data=TruncDate('created_at')).values('data').annotate(total=Count('id')).order_by('data')
+    evolucao_labels = [e['data'].strftime('%d/%m') for e in evolucao]
+    evolucao_data = [e['total'] for e in evolucao]
+
+    # Top 5 usuários que mais requisitam
+    top_users = qs.values('requester__username').annotate(total=Count('id')).order_by('-total')[:5]
+    top_users_labels = [u['requester__username'] for u in top_users]
+    top_users_data = [u['total'] for u in top_users]
+
+    # Setor com mais requisições
+    setor_top = setores_labels[0] if setores_labels else 'N/A'
+    # Usuário com mais requisições
+    user_top = top_users_labels[0] if top_users_labels else 'N/A'
+
+    # Tabela de requisições recentes
+    requisicoes_do_dia = qs.order_by('-created_at')[:20]
+
+    tempo_medio_str = format_timedelta(tempo_medio)
+    context = {
         'pendentes': pendentes,
         'aprovadas_hoje': aprovadas_hoje,
         'total_mes': total_mes,
-        'departamentos_ativos': departamentos_ativos
+        'departamentos_ativos': departamentos_ativos,
+        'urgentes_pendentes': urgentes_pendentes,
+        'tempo_medio': tempo_medio,
+        'tempo_medio_str': tempo_medio_str,
+        'pct_no_prazo': round(pct_no_prazo, 1),
+        'setor_top': setor_top,
+        'user_top': user_top,
+        'setores_labels': setores_labels,
+        'setores_data': setores_data,
+        'status_labels': status_labels,
+        'status_data': status_data,
+        'evolucao_labels': evolucao_labels,
+        'evolucao_data': evolucao_data,
+        'top_users_labels': top_users_labels,
+        'top_users_data': top_users_data,
+        'requisicoes_do_dia': requisicoes_do_dia,
     }
-    return render(request, 'core/dashboard_gestor.html',context)
+    # Gráfico: Categorias mais requisitadas (últimos 30 dias)
+    from .models import RequestItem, ItemCategory
+    categorias = RequestItem.objects.filter(created_at__gte=today - timedelta(days=30)) \
+        .values('category') \
+        .annotate(total=Count('id')) \
+        .order_by('-total')
+    categorias_labels = [dict(ItemCategory.choices).get(c['category'], c['category']) for c in categorias]
+    categorias_data = [c['total'] for c in categorias]
+    context['categorias_labels'] = categorias_labels
+    context['categorias_data'] = categorias_data
+    return render(request, 'core/dashboard_gestor.html', context)
 
 @user_passes_test(is_gestor)
 def usuarios_list(request):

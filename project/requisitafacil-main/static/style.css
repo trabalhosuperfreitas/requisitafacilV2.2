@@ -300,33 +300,126 @@ html, body {
   margin-bottom: 28px;
 }
 
+/* Dashboard Gestor UX Melhorada */
 .dashboard-title {
-  font-size: 2.5rem;
-  font-weight: 800;
-  margin-bottom: 2px;
-  color: #ffffff;
+    font-size: 2.2rem;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+    color: #fff;
 }
-
 .dashboard-desc {
-  font-size: 0.90rem;
-  color: #454444;
-  margin-bottom: 0;
-  font-weight: 400;
+    font-size: 1.1rem;
+    color: #b3b3b3;
+    margin-bottom: 2rem;
+}
+.cards-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+    margin-bottom: 32px;
+    justify-content: flex-start;
+}
+.card {
+    background: #181818;
+    border: 1px solid #333;
+    border-radius: 14px;
+    padding: 18px 20px;
+    min-width: 180px;
+    min-height: 80px;
+    font-size: 1rem;
+    color: #fff;
+    box-shadow: 0 2px 8px 0 #0002;
+    flex: 1 1 180px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    transition: box-shadow 0.2s;
+    margin-bottom: 0;
+}
+.card-title {
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin-bottom: 2px;
+    color: #b3d1ff;
+}
+.card-value {
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 4px 0 2px 0;
+    color: #fff;
+}
+.card-desc {
+    font-size: 0.98rem;
+    color: #4a4a4a;
 }
 
-/* Responsividade */
-@media (max-width: 900px) {
-  .layout-wrapper {
-    width: 100vw;
-    padding: 16px 2vw;
-  }
+/* Gráficos responsivos */
+.row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+    margin-bottom: 32px;
 }
-
+.col-md-6 {
+    flex: 1 1 420px;
+    max-width: 48%;
+    min-width: 320px;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+}
+.card.p-3 {
+    min-height: 340px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: stretch;
+    background: #181818;
+    border: 1px solid #333;
+    border-radius: 14px;
+    box-shadow: 0 2px 8px 0 #0002;
+}
+.card.p-3 h5 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #b3d1ff;
+    margin-bottom: 18px;
+}
+.card.p-3 canvas {
+    width: 100% !important;
+    height: 220px !important;
+    max-height: 240px;
+    margin: 0 auto;
+}
+@media (max-width: 1100px) {
+    .col-md-6 {
+        max-width: 100%;
+        min-width: 260px;
+    }
+    .row {
+        gap: 16px;
+    }
+}
 @media (max-width: 700px) {
-  .layout-wrapper {
-    width: 100vw;
-    padding: 12px 2vw;
-  }
+    .cards-container {
+        flex-direction: column;
+        gap: 16px;
+    }
+    .row {
+        flex-direction: column;
+        gap: 16px;
+    }
+    .col-md-6 {
+        max-width: 100%;
+        min-width: 0;
+    }
+    .card.p-3 {
+        min-height: 220px;
+    }
+    .dashboard-title {
+        font-size: 1.4rem;
+    }
 }
 .table-wrapper {
   margin-top: 20px;

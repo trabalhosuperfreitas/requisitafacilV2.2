@@ -1,7 +1,7 @@
 # Documentação do Projeto Requisita Fácil
 
 ## Visão Geral
-O **Requisita Fácil** é um sistema web completo para gestão de requisições internas de materiais, desenvolvido em Django. O sistema oferece controle de permissões por papel (Almoxarife, Gestor, Encarregado), dashboards personalizados, filtros avançados e acompanhamento completo do ciclo de vida das requisições.
+O **Requisita Fácil** é um sistema web completo para gestão de requisições internas de materiais, desenvolvido em Django. O sistema oferece controle de permissões por papel (Almoxarife, Gestor, Encarregado), dashboards personalizados, filtros avançados, notificações em tempo real e acompanhamento completo do ciclo de vida das requisições.
 
 ---
 
@@ -13,6 +13,8 @@ O **Requisita Fácil** é um sistema web completo para gestão de requisições 
 - **Banco de Dados**: SQLite (desenvolvimento) / PostgreSQL (produção)
 - **Autenticação**: Sistema nativo do Django
 - **Interface**: Design responsivo com sidebar fixa
+- **Tempo Real**: FastAPI WebSocket para notificações
+- **JavaScript**: Interações dinâmicas e formset
 
 ### Estrutura de Pastas
 ```
@@ -23,6 +25,7 @@ requisitafacil-main/
 │   ├── forms.py                   # Formulários Django
 │   ├── urls.py                    # Rotas do app
 │   ├── admin.py                   # Configuração do admin
+│   ├── static/core/               # JavaScript customizado
 │   └── migrations/                # Migrações do banco
 ├── requisita_facil/              # Configurações do projeto
 │   ├── settings.py               # Configurações globais
@@ -33,6 +36,7 @@ requisitafacil-main/
 │   └── registration/             # Templates de auth
 ├── static/                       # Arquivos estáticos
 │   └── style.css                 # CSS customizado
+├── realtime_server.py            # Servidor FastAPI para WebSocket
 ├── db.sqlite3                    # Banco de dados
 ├── requirements.txt              # Dependências
 └── manage.py                    # Script de gerenciamento
@@ -66,7 +70,7 @@ requisitafacil-main/
   - `request_code`: Código único (ex: F-1, FR-2)
   - `urgency`: Urgência (Normal/Urgente)
   - `observations`: Observações gerais
-  - `status`: Status (Pendente/Em Atendimento/Aprovada)
+  - `status`: Status (Pendente/Em Atendimento/Atendida)
   - `created_at`, `updated_at`: Timestamps
 
 ### RequestItem (Item da Requisição)
@@ -82,7 +86,7 @@ requisitafacil-main/
 - **Role**: Gestor, Encarregado, Almoxarife
 - **ItemCategory**: Insumo(Produção), Embalagens, Limpeza, Area de venda, Administrativo
 - **Urgency**: Normal, Urgente
-- **RequestStatus**: Pendente, Em Atendimento, Aprovada
+- **RequestStatus**: Pendente, Em Atendimento, Atendida
 
 ---
 
@@ -93,6 +97,7 @@ requisitafacil-main/
 - **Visualizar** apenas suas requisições
 - **Dashboard** com estatísticas pessoais
 - **Excluir** requisições pendentes próprias
+- **Receber notificações** em tempo real
 
 ### 🏢 Almoxarife
 - **Visualizar** todas as requisições
@@ -100,13 +105,16 @@ requisitafacil-main/
 - **Dashboard** específico para atendimento
 - **Iniciar atendimento** de requisições
 - **Finalizar** requisições com quantidades atendidas
+- **Observações detalhadas** por item
+- **Controle de concorrência** (evita conflitos)
 
 ### 👨‍💼 Gestor
 - **Visualizar** todas as requisições
-- **Dashboard** com estatísticas gerais
-- **Criar usuários** do sistema
+- **Dashboard avançado** com KPIs e gráficos
+- **Gerenciar usuários** (CRUD completo)
 - **Monitorar** tendências e departamentos ativos
-- **Acesso**: `/usuarios/criar/` (apenas para Gestores)
+- **Relatórios** de performance
+- **Análise temporal** de requisições
 
 ---
 
@@ -114,7 +122,7 @@ requisitafacil-main/
 
 ### 1. Criação da Requisição
 ```
-Encarregado → /criar_requisicao/ → Preenche formulário → Salva no banco
+Encarregado → /criar_requisicao/ → Preenche formulário → Salva no banco → Notificação em tempo real
 ```
 
 **Processo**:
@@ -123,22 +131,26 @@ Encarregado → /criar_requisicao/ → Preenche formulário → Salva no banco
 - Adiciona itens (nome, quantidade, categoria)
 - Sistema gera código único automaticamente
 - Requisição salva com status "Pendente"
+- **Notificação WebSocket** enviada para todos os clientes
 
 ### 2. Atendimento da Requisição
 ```
-Almoxarife → /almoxarife_dashboard/ → Seleciona requisição → Atende
+Almoxarife → /almoxarife_dashboard/ → Seleciona requisição → Inicia atendimento → Atende → Finaliza
 ```
 
 **Processo**:
 - Almoxarife vê requisições pendentes
-- Inicia atendimento (status → "Em Atendimento")
+- **Inicia atendimento** (status → "Em Atendimento")
+- **Controle de concorrência**: Apenas um almoxarife por requisição
 - Preenche quantidades atendidas por item
-- Adiciona observações do atendimento
-- Finaliza (status → "Aprovada")
+- Adiciona observações específicas do item
+- **Observações do atendimento** são anexadas
+- Finaliza (status → "Atendida")
+- **Notificação WebSocket** enviada
 
 ### 3. Acompanhamento
 - **Encarregado**: Vê status das suas requisições
-- **Gestor**: Monitora todas as requisições
+- **Gestor**: Monitora todas as requisições com KPIs
 - **Almoxarife**: Gerencia atendimento
 
 ---
@@ -157,6 +169,7 @@ Almoxarife → /almoxarife_dashboard/ → Seleciona requisição → Atende
 - **Formulários dinâmicos** com formset
 - **Alertas** para feedback do usuário
 - **Badges** para status e urgência
+- **Gráficos** no dashboard do gestor
 
 ### CSS Customizado (`static/style.css`)
 - **Sidebar**: 260px de largura, tema escuro
@@ -176,7 +189,7 @@ Almoxarife → /almoxarife_dashboard/ → Seleciona requisição → Atende
 ### Views de Navegação
 - `home_view()`: Redireciona baseado no papel
 - `dashboard()`: Dashboard geral
-- `gestor_dashboard()`: Dashboard específico do gestor
+- `gestor_dashboard()`: Dashboard específico do gestor com KPIs
 - `almoxarife_dashboard()`: Dashboard do almoxarife
 
 ### Views de Requisição
@@ -187,10 +200,14 @@ Almoxarife → /almoxarife_dashboard/ → Seleciona requisição → Atende
 
 ### Views de Atendimento
 - `iniciar_atendimento_requisicao()`: Inicia atendimento
-- `almoxarife_atender_requisicao()`: Atende requisição
+- `almoxarife_atender_requisicao()`: Atende requisição com controle de concorrência
 
-### Views de Usuário
-- `criar_usuario()`: Cadastro de novos usuários
+### Views de Usuário (Gestor)
+- `usuarios_list()`: Lista todos os usuários
+- `usuario_create()`: Cria novo usuário
+- `usuario_edit()`: Edita usuário existente
+- `usuario_delete()`: Remove usuário
+- `criar_usuario()`: Formulário de criação
 
 ---
 
@@ -234,6 +251,14 @@ Almoxarife → /almoxarife_dashboard/ → Seleciona requisição → Atende
 /usuarios/criar/            → criar_usuario (apenas Gestores)
 ```
 
+### Rotas de Gestão de Usuários (Gestor)
+```
+/configuracoes/usuarios/    → usuarios_list
+/configuracoes/usuarios/novo/ → usuario_create
+/configuracoes/usuarios/<uuid>/editar/ → usuario_edit
+/configuracoes/usuarios/<uuid>/excluir/ → usuario_delete
+```
+
 ### Rotas de Autenticação
 ```
 /accounts/login/            → Login do sistema
@@ -269,6 +294,12 @@ Almoxarife → /almoxarife_dashboard/ → Seleciona requisição → Atende
   - Senha com confirmação
   - Setor obrigatório para Encarregado
 
+### Gestão Completa de Usuários (Gestor)
+- **Listagem**: `/configuracoes/usuarios/`
+- **Criação**: `/configuracoes/usuarios/novo/`
+- **Edição**: `/configuracoes/usuarios/<uuid>/editar/`
+- **Exclusão**: `/configuracoes/usuarios/<uuid>/excluir/`
+
 ### Recuperação de Senha
 - **URL**: `/accounts/password_reset/`
 - **Funcionalidade**: Sistema nativo do Django
@@ -300,21 +331,37 @@ Almoxarife → /almoxarife_dashboard/ → Seleciona requisição → Atende
 - **Alertas**: Requisições urgentes pendentes
 - **Tabela**: Requisições recentes/ativas
 
-### Dashboard do Gestor
-- **Estatísticas**: Departamentos ativos, tendências
-- **Visão geral**: Todas as requisições do dia
-- **Funcionalidades**: Acesso para criar novos usuários
+### Dashboard do Gestor (Avançado)
+- **KPIs Principais**:
+  - Requisições pendentes
+  - Aprovadas hoje
+  - Total do mês
+  - Departamentos ativos
+  - Requisições urgentes pendentes
+- **Métricas de Performance**:
+  - Tempo médio de atendimento
+  - % atendidas no prazo (24h)
+  - Setor com mais requisições
+  - Usuário com mais requisições
+- **Gráficos**:
+  - Requisições por setor (30 dias)
+  - Distribuição por status
+  - Evolução diária
+  - Top 5 usuários
+  - Categorias mais requisitadas
+- **Tabela**: Requisições recentes (20 últimas)
 
 ### Dashboard do Almoxarife
 - **Foco**: Requisições pendentes para atendimento
 - **Ações**: Iniciar atendimento
+- **Controle**: Evita conflitos de atendimento
 
 ---
 
 ## 🔍 Filtros e Busca
 
 ### Filtros Disponíveis
-- **Status**: Pendente, Em Atendimento, Aprovada
+- **Status**: Pendente, Em Atendimento, Atendida
 - **Data**: Filtro por data de criação
 - **Urgência**: Normal, Urgente
 - **Setor**: Filtro por departamento
@@ -323,6 +370,63 @@ Almoxarife → /almoxarife_dashboard/ → Seleciona requisição → Atende
 - **Query Parameters**: GET requests
 - **Queryset Filtering**: Django ORM
 - **Interface**: Formulários no template
+
+---
+
+## ⚡ Sistema de Notificações em Tempo Real
+
+### Servidor FastAPI (`realtime_server.py`)
+- **WebSocket**: `/ws/updates`
+- **Notificações**: `/notify`
+- **Funcionalidades**:
+  - Conexões WebSocket persistentes
+  - Broadcast de atualizações
+  - CORS habilitado
+  - Limpeza automática de conexões
+
+### Integração com Django
+- **Notificações enviadas**:
+  - Nova requisição criada
+  - Requisição finalizada
+- **Método**: `requests.post('http://localhost:8001/notify')`
+- **Dados**: JSON com ação específica
+
+### JavaScript Client
+- **Arquivo**: `static/core/admin_user_sector.js`
+- **Funcionalidades**:
+  - Conexão WebSocket automática
+  - Recebimento de notificações
+  - Atualização da interface
+  - Reconexão automática
+
+---
+
+## 🎯 Funcionalidades Avançadas
+
+### Geração Automática de Códigos
+- **Formato**: SETOR-NÚMERO (ex: F-1, FR-2)
+- **Mapeamento**: Setores para abreviações
+- **Sequencial**: Número automático por setor
+
+### Formset Dinâmico
+- **Adicionar/Remover** itens dinamicamente
+- **Validação** em tempo real
+- **JavaScript** para interação
+
+### Controle de Concorrência (Almoxarife)
+- **Proteção**: Apenas um almoxarife por requisição
+- **Verificação**: Status e atendido_por
+- **Mensagens**: Feedback claro sobre conflitos
+
+### Observações Detalhadas
+- **Item**: Observação específica por item
+- **Atendimento**: Observações gerais do atendimento
+- **Histórico**: Preservação de observações originais
+
+### Alertas Inteligentes
+- **Requisições urgentes** pendentes
+- **Threshold**: Mais de 3 urgentes
+- **Ação direta**: Link para filtro
 
 ---
 
@@ -354,8 +458,11 @@ python manage.py migrate
 # 5. Crie um superusuário
 python manage.py createsuperuser
 
-# 6. Execute o servidor
+# 6. Execute o servidor Django
 python manage.py runserver
+
+# 7. Execute o servidor FastAPI (em outro terminal)
+python realtime_server.py
 ```
 
 ### Configuração Inicial
@@ -367,16 +474,17 @@ python manage.py runserver
 
 ### Como Criar Novos Usuários
 1. **Faça login** como Gestor
-2. **Acesse** `http://localhost:8000/usuarios/criar/`
-3. **Preencha** o formulário com:
+2. **Acesse** `http://localhost:8000/configuracoes/usuarios/`
+3. **Clique** em "Novo Usuário"
+4. **Preencha** o formulário com:
    - Usuário (username)
    - E-mail
    - Senha e confirmação
    - Função (Gestor, Encarregado, Almoxarife)
    - Setor (obrigatório para Encarregado)
-4. **Clique** em "Criar Usuário"
+5. **Clique** em "Salvar"
 
-**Observação**: Apenas usuários com papel de **Gestor** podem criar novos usuários no sistema.
+**Observação**: Apenas usuários com papel de **Gestor** podem gerenciar usuários no sistema.
 
 ---
 
@@ -402,6 +510,9 @@ python manage.py runserver
 Django>=4.2          # Framework web
 psycopg2-binary>=2.9 # Driver PostgreSQL
 python-dotenv>=1.0   # Variáveis de ambiente
+fastapi>=0.104.0     # Servidor WebSocket
+uvicorn>=0.24.0      # ASGI server
+requests>=2.31.0     # HTTP client
 ```
 
 ---
@@ -413,27 +524,8 @@ python-dotenv>=1.0   # Variáveis de ambiente
 - `0002_alter_user_sector.py`: Alteração no campo sector
 - `0003_requestitem_ean_requestitem_observations_and_more.py`: Adição de campos
 - `0004_remove_requestitem_ean_and_more.py`: Remoção de campos
-- `0005_requestitem_observacao_item_and_more.py`: Novos campos
-- `0006_alter_request_status.py`: Alteração nos status
-
----
-
-## 🎯 Funcionalidades Avançadas
-
-### Geração Automática de Códigos
-- **Formato**: SETOR-NÚMERO (ex: F-1, FR-2)
-- **Mapeamento**: Setores para abreviações
-- **Sequencial**: Número automático por setor
-
-### Formset Dinâmico
-- **Adicionar/Remover** itens dinamicamente
-- **Validação** em tempo real
-- **JavaScript** para interação
-
-### Alertas Inteligentes
-- **Requisições urgentes** pendentes
-- **Threshold**: Mais de 3 urgentes
-- **Ação direta**: Link para filtro
+- `0005_requestitem_observacao_item_and_more.py`: Novos campos (quantidade_atendida, observacao_item)
+- `0006_alter_request_status.py`: Alteração nos status (Pendente/Em Atendimento/Atendida)
 
 ---
 
@@ -445,12 +537,14 @@ python-dotenv>=1.0   # Variáveis de ambiente
 - **User Passes Test**: Verificação de papéis
 - **UUID**: IDs únicos para recursos
 - **SQL Injection**: Proteção via ORM
+- **Controle de Concorrência**: Evita conflitos de atendimento
 
 ### Boas Práticas
 - **Validação**: Formulários e modelos
 - **Sanitização**: Dados de entrada
 - **Permissões**: Controle granular
 - **Logs**: Rastreamento de ações
+- **Transações**: Atomic operations
 
 ---
 
@@ -462,6 +556,7 @@ python-dotenv>=1.0   # Variáveis de ambiente
 - **API REST**: Para integração
 - **Auditoria**: Log de mudanças
 - **Backup**: Automático do banco
+- **Mobile App**: Aplicativo nativo
 
 ### Otimizações Técnicas
 - **Cache**: Redis para performance
@@ -469,6 +564,7 @@ python-dotenv>=1.0   # Variáveis de ambiente
 - **Docker**: Containerização
 - **CI/CD**: Pipeline automatizado
 - **Testes**: Unitários e integração
+- **Monitoramento**: Métricas de performance
 
 ---
 
@@ -487,5 +583,28 @@ Este projeto está sob a licença [TIPO_DE_LICENÇA]. Veja o arquivo LICENSE par
 
 ---
 
-*Documentação atualizada em: [DATA]*
-*Versão do sistema: 1.0*
+*Documentação atualizada em: Dezembro 2024*
+*Versão do sistema: 2.0*
+
+### 🆕 Novidades da Versão 2.0
+
+#### ✨ Funcionalidades Adicionadas
+- **Sistema de Notificações em Tempo Real** com WebSocket
+- **Gestão Completa de Usuários** para Gestores
+- **Dashboard Avançado** com KPIs e gráficos
+- **Controle de Concorrência** para almoxarifes
+- **Observações Detalhadas** por item e atendimento
+- **Métricas de Performance** e análise temporal
+- **Interface Melhorada** com JavaScript dinâmico
+
+#### 🔧 Melhorias Técnicas
+- **Servidor FastAPI** para notificações
+- **Transações Atômicas** para integridade
+- **Validações Aprimoradas** nos formulários
+- **Código Mais Robusto** com tratamento de erros
+- **Documentação Completa** atualizada
+
+#### 📊 Novos Dashboards
+- **Gestor**: KPIs, gráficos, métricas de performance
+- **Almoxarife**: Foco em atendimento com controle de concorrência
+- **Encarregado**: Estatísticas pessoais melhoradas

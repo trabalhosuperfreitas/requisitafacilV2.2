@@ -1,0 +1,309 @@
+{# templates/core/criar_requisicao.html #}
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Nova Requisição 📝{% endblock %}
+
+{% block content %}
+    <!-- Breadcrumb -->
+    <div class="card-title-requisicao">Nova Requisição</div>
+    <!-- Informações do Cabeçalho -->
+    <div class="d-flex gap-3 mb-4">
+        <div class="info-card">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-user text-primary me-2"></i>
+                <div class="requisitante-card">
+                    <div class="label">Solicitante</div>
+                    <div class="value">{{ user.get_full_name|default:user.username }}</div>
+                </div>
+            </div>
+        </div>
+        <div  class="requisitante-card">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-building text-primary me-2"></i>
+                <div>
+                    <div class="label">Setor</div>
+                    <div class="value">{{ user.sector.name|default:"N/A" }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="requisitante-card">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-calendar text-primary me-2"></i>
+                <div>
+                    <div class="label">Data</div>
+                    <div class="value">{{ data_today|date:"d/m/Y"}}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Card Principal -->
+    <div class="requisicao-card mb-4">
+        <div class="requisicao-card-header">
+            <div>
+                <div class="requisicao-card-title">📦 Dados da Requisição
+                </div>
+            </div>
+        </div>
+
+        <div class="card-body">
+            {# Mensagens de feedback do Django (sucesso/erro) #}
+            {% if messages %}
+                <div class="mb-3">
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <form method="post">
+                {% csrf_token %} {# ESSENCIAL para segurança em formulários POST #}
+                
+                {# Urgência #}
+                <div class="mb-3">
+                    <label for="{{ form.urgency.id_for_label }}" class="form-label">
+                        <i class="fas fa-hourglass-half me-1"></i> {{ form.urgency.label }} <span class="text-danger">*</span>
+                    </label>
+                    {{ form.urgency }}
+                    {% if form.urgency.help_text %}
+                        <div class="form-text text-reset text-muted">{{ form.urgency.help_text }}</div>
+                    {% endif %}
+                    {% for error in form.urgency.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div id="empty-form" style="display:none;">
+                    <div class="item-formset-row mb-3 p-3 border rounded bg-light text-dark">
+                        {% for hidden_field in formset.empty_form.hidden_fields %}
+                            {{ hidden_field }}
+                        {% endfor %}
+                        <div class="row g-3">
+                            <div class="col-md-5">
+                                <label for="{{ formset.empty_form.item_requested.id_for_label }}" class="form-label">Item</label>
+                                {{ formset.empty_form.item_requested }}
+                            </div>
+                            <div class="col-md-3">
+                                <label for="{{ formset.empty_form.quantify.id_for_label }}" class="form-label">Quantidade</label>
+                                {{ formset.empty_form.quantify }}
+                            </div>
+                            <div class="col-md-3">
+                                <label for="{{ formset.empty_form.category.id_for_label }}" class="form-label">Categoria</label>
+                                {{ formset.empty_form.category }}
+                            </div>
+                            <div class="col-md-1 d-flex align-items-end">
+                                <button type="button" class="btn btn-danger btn-sm remove-item-btn" style="width: 100%;">X</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <h5 class="mb-3">Itens da Requisição</h5>
+                <div id="formset-container">
+                    {{ formset.management_form }}
+                    {% for item_form in formset %}
+                        <div class="item-formset-row mb-3 p-3 border rounded bg-light text-dark">
+                            {% for hidden_field in item_form.hidden_fields %}
+                                {{ hidden_field }}
+                            {% endfor %}
+                            <div class="row g-3">
+                                <div class="col-md-5">
+                                    <label for="{{ item_form.item_requested.id_for_label }}" class="form-label">Item</label>
+                                    {{ item_form.item_requested }}
+                                    {% for error in item_form.item_requested.errors %}
+                                        <div class="text-danger small">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="{{ item_form.quantify.id_for_label }}" class="form-label">Quantidade</label>
+                                    {{ item_form.quantify }}
+                                    {% for error in item_form.quantify.errors %}
+                                        <div class="text-danger small">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="{{ item_form.category.id_for_label }}" class="form-label">Categoria</label>
+                                    {{ item_form.category }}
+                                    {% for error in item_form.category.errors %}
+                                        <div class="text-danger small">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                                <div class="col-md-1 d-flex align-items-end">
+                                    {% if formset.can_delete %}
+                                        <button type="button" class="btn btn-danger btn-sm remove-item-btn" style="width: 100%;">X</button>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% if item_form.non_field_errors %}
+                                <div class="alert alert-danger mt-2">
+                                    {% for error in item_form.non_field_errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+                <button type="button" id="add-item" class="btn btn-info btn-sm mt-3"><i class="fas fa-plus-circle me-2"></i> Adicionar Item</button>
+
+                {# Observações #}
+                <div class="mb-3 mt-4">
+                    <label for="{{ form.observations.id_for_label }}" class="form-label">
+                        <i class="fas fa-comment-dots me-1"></i> {{ form.observations.label }}
+                    </label>
+                    {{ form.observations }}
+                    {% if form.observations.help_text %}
+                        <div class="form-text text-reset text-muted">{{ form.observations.help_text }}</div>
+                    {% endif %}
+                    {% for error in form.observations.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                {# Exibição de erros gerais do formulário (non_field_errors) #}
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger mt-3">
+                        {% for error in form.non_field_errors %}
+                            <div>{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                
+                {# Botões de ação #}
+                <div class="d-flex justify-content-start mt-4">
+                    <button type="submit" class="btn btn-primary me-2">
+                        <i class="fas fa-plus-circle me-2"></i> Criar Requisição
+                    </button>
+                    <a href="{% url 'core:listar_requisicoes' %}" class="btn btn-secondary">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Resumo dos Itens Adicionados -->
+    <div id="item-summary-container" class="table-tabela mt-4" style="display: none;">
+        <div class="card" style="background-color: #2c3e50; color: white;">
+            <div class="card-header">
+                <h5>Resumo dos Itens</h5>
+            </div>
+            <div class="card-body" style="padding: 2px;">
+                <table class="table table-dark table-striped mb-0">
+                    <thead>
+                        <tr>
+                            <th scope="col">Item</th>
+                            <th scope="col">Quantidade</th>
+                            <th scope="col">Categoria</th>
+                        </tr>
+                    </thead>
+                    <tbody id="item-summary-tbody">
+                        <!-- Linhas da tabela serão adicionadas aqui -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Seção de Dicas centralizada -->
+     <div class="dicas-card-container">
+        <div class="d-flex justify-content-center mt-4">
+            <div class="dicas-card shadow-sm p-4" style="max-width: 500px; width: 100%;">
+                <h5 class="mb-3 text-info"><i class="fas fa-lightbulb me-2"></i> Dicas para uma requisição eficiente</h5>
+                <ul class="list-unstyled">
+                    <li><i class="fas fa-check-circle text-success me-2"></i> Seja específico no nome do item (marca, tamanho, tipo).</li>
+                    <li><i class="fas fa-check-circle text-success me-2"></i> Informe a quantidade exata necessária.</li>
+                    <li><i class="fas fa-check-circle text-success me-2"></i> Use "Urgente" apenas quando realmente necessário.</li>
+                    <li><i class="fas fa-check-circle text-success me-2"></i> Adicione observações para contexto adicional.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function() {
+        function updateSummary() {
+            var summaryTableBody = $('#item-summary-tbody');
+            summaryTableBody.empty();
+            var hasItems = false;
+
+            $('.item-formset-row').each(function() {
+                var itemName = $(this).find('input[name$=item_requested]').val();
+                var quantity = $(this).find('input[name$=quantify]').val();
+                var category = $(this).find('select[name$=category] option:selected').text();
+
+                if (itemName && quantity) {
+                    var newRow = '<tr><td>' + itemName + '</td><td>' + quantity + '</td><td>' + category + '</td></tr>';
+                    summaryTableBody.append(newRow);
+                    hasItems = true;
+                }
+            });
+
+            if (hasItems) {
+                $('#item-summary-container').show();
+            } else {
+                $('#item-summary-container').hide();
+            }
+        }
+
+        function updateFormIndexes() {
+            $('.item-formset-row').each(function(i) {
+                $(this).find('input, select, textarea').each(function() {
+                    if ($(this).attr('name')) {
+                        $(this).attr('name', $(this).attr('name').replace(/items-\d+-/, 'items-' + i + '-'));
+                    }
+                    if ($(this).attr('id')) {
+                        $(this).attr('id', $(this).attr('id').replace(/items-\d+-/, 'items-' + i + '-'));
+                    }
+                });
+                $(this).find('label').each(function() {
+                    if ($(this).attr('for')) {
+                        $(this).attr('for', $(this).attr('for').replace(/items-\d+-/, 'items-' + i + '-'));
+                    }
+                });
+            });
+        }
+
+        $('#add-item').click(function() {
+            var formCount = parseInt($('#id_items-TOTAL_FORMS').val());
+            var newForm = $('#empty-form .item-formset-row').clone();
+
+            newForm.find('input, select, textarea').each(function() {
+                var name = $(this).attr('name').replace(/__prefix__/g, formCount);
+                var id = $(this).attr('id').replace(/__prefix__/g, formCount);
+                $(this).attr({'name': name, 'id': id}).val('');
+            });
+
+            newForm.find('label').each(function() {
+                var forAttr = $(this).attr('for').replace(/__prefix__/g, formCount);
+                $(this).attr('for', forAttr);
+            });
+
+            $('#formset-container').append(newForm);
+            $('#id_items-TOTAL_FORMS').val(formCount + 1);
+            updateSummary();
+        });
+
+        $('#formset-container').on('click', '.remove-item-btn', function() {
+            if ($('.item-formset-row').length > 1) {
+                $(this).closest('.item-formset-row').remove();
+                $('#id_items-TOTAL_FORMS').val($('.item-formset-row').length);
+                updateFormIndexes();
+                updateSummary();
+            } else {
+                alert('A requisição deve ter pelo menos um item.');
+            }
+        });
+
+        $('#formset-container').on('change keyup', 'input, select', function() {
+            updateSummary();
+        });
+
+        updateSummary();
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Requisita Facil{% endblock %}
+
+{% block content %}
+    <!-- Sidebar fixa (vem do base.html ou pode ser incluída aqui se necessário) -->
+    <h1>Dashboard</h1>
+    <p>Visão geral do sistema de requisições</p>
+    <div class="cards-container">
+        <div class="card">
+            <div class="card-title">Requisições Pendentes <span class="card-icon">&#128337;</span></div>
+            <div class="card-value">{{ pendentes }}</div>
+            <div class="card-desc">Aguardando aprovação</div>
+        </div>
+        <div class="card">
+            <div class="card-title">Aprovadas Hoje <span class="card-icon">&#10003;</span></div>
+            <div class="card-value">{{ aprovadas_hoje }}</div>
+            <div class="card-desc">Requisições processadas</div>
+        </div>
+        <div class="card">
+            <div class="card-title">Total do Mês <span class="card-icon">&#128196;</span></div>
+            <div class="card-value">{{ total_mes }}</div>
+            <div class="card-desc">Requisições criadas</div>
+        </div>
+        <div class="card">
+            <div class="card-title">Departamentos Ativos <span class="card-icon">&#128101;</span></div>
+            <div class="card-value">{{ departamentos_ativos }}</div>
+            <div class="card-desc">Fazendo requisições</div>
+        </div>
+    </div>
+
+    <div class="table-wrapper">
+        <h2>Requisições Recentes</h2>
+        <p>Todas as requisições recentes você encontra aqui:</p>
+
+        <div class="table-responsive-wrapper">
+            <table class="table table-dark table-borderless table-hover">
+                <thead>
+                    <tr>
+                        <th>Código</th>
+                        <th>Requisitante</th>
+                        <th>Setor</th>
+                        <th>Urgência</th>
+                        <th>Status</th>
+                        <th>Hora</th>
+                        <th>Observações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for req in requisicoes_do_dia %}
+                        <tr>
+                            <td><a href="{% url 'core:detalhe_requisicao' req.id %}">{{ req.request_code }}</a></td>
+                            <td>{{ req.requester.get_full_name|default:req.requester.username }}</td>
+                            <td>{{ req.sector.name }}</td>
+                            <td>
+                                {% if req.urgency == 'URGENTE' %}
+                                    <span class="badge bg-danger">{{ req.get_urgency_display }}</span>
+                                {% else %}
+                                    <span class="badge bg-info">{{ req.get_urgency_display }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if req.status == 'PENDING' %}
+                                    <span class="badge bg-warning">{{ req.get_status_display }}</span>
+                                {% elif req.status == 'APPROVED' %}
+                                    <span class="badge bg-success">{{ req.get_status_display }}</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{{ req.get_status_display }}</span>
+                                {% endif %}    
+                            </td>
+                            <td>{{ req.created_at|date:"H:i:s" }}</td>
+                            <td>{{ req.observations|truncatechars:50 }}</td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center">Nenhuma Requisição encontrada</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Atender Requisição {{ requisicao.request_code }}{% endblock %}
+
+{% block content %}
+<main class="main-content">
+    <h1 class="card-title-requisicao">Atender Requisição #{{ requisicao.request_code }}</h1>
+
+    {% if messages %}
+    <div class="mb-3">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="card bg-dark text-white mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Detalhes da Requisição</h5>
+            <p><strong>Requisitante:</strong> {{ requisicao.requester.get_full_name|default:requisicao.requester.username }}</p>
+            <p><strong>Setor:</strong> {{ requisicao.sector.name }}</p>
+            <p><strong>Status:</strong> <span class="badge bg-primary">{{ requisicao.get_status_display }}</span></p>
+            <p><strong>Data:</strong> {{ requisicao.created_at|date:"d/m/Y H:i" }}</p>
+            <p><strong>Observações Gerais:</strong> {{ requisicao.observations|default:"Nenhuma" }}</p>
+        </div>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="table-responsive">
+            <table class="table table-dark table-transparent table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th style="width: 40%;">Item Solicitado</th>
+                        <th class="text-center" style="width: 15%;">Qtd. Solicitada</th>
+                        <th class="text-center" style="width: 15%;">Qtd. a Atender</th>
+                        <th>Observações do Item</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in requisicao.items.all %}
+                        <tr>
+                            <td>{{ item.item_requested }}</td>
+                            <td class="text-center">{{ item.quantify }}</td>
+                            <td>
+                                <input type="number" name="quantidade_atendida" class="form-control form-control-sm bg-dark text-white" value="{{ item.quantify }}" min="0" max="{{ item.quantify }}">
+                                <input type="hidden" name="item_id" value="{{ item.id }}">
+                            </td>
+                            <td>
+                                <input type="text" name="observacao_item" class="form-control form-control-sm bg-dark text-white" placeholder="Ex: Item substituído por...">
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="mt-4">
+            <div class="mb-3">
+                <label for="observacoes_atendimento" class="form-label">Observações Finais do Atendimento</label>
+                <textarea name="observacoes_atendimento" id="observacoes_atendimento" class="form-control bg-dark text-white" rows="3"></textarea>
+            </div>
+            <div class="d-flex justify-content-end">
+                <a href="{% url 'core:listar_requisicoes' %}" class="btn btn-secondary me-2">Cancelar</a>
+                <button type="submit" name="action" value="finalizar" class="btn btn-success">Finalizar Atendimento</button>
+            </div>
+        </div>
+    </form>
+</main>
+{% endblock %}

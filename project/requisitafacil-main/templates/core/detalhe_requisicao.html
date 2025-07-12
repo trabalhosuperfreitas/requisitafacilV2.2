@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Detalhes da Requisição{% endblock %}
+
+{% block content %}
+<main class="main-content">
+    <h1 class="card-title-requisicao">Detalhes da Requisição #{{ requisicao.request_code }}</h1>
+
+    {% if messages %}
+    <div class="mb-3">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="card mb-4 bg-dark text-white">
+        <div class="card-header">
+            <h5 class="mb-0">Informações da Requisição</h5>
+        </div>
+        <div class="card-body">
+            <div class="row mb-2">
+                <div class="col-md-6"><strong>Requisitante:</strong> {{ requisicao.requester.get_full_name|default:requisicao.requester.username }}</div>
+                <div class="col-md-6"><strong>Setor:</strong> {{ requisicao.sector.name }}</div>
+            </div>
+            <div class="row mb-2">
+                <div class="col-md-6"><strong>Urgência:</strong> 
+                    {% if requisicao.urgency == 'URGENTE' %}
+                        <span class="badge bg-danger">{{ requisicao.get_urgency_display }}</span>
+                    {% else %}
+                        <span class="badge bg-info">{{ requisicao.get_urgency_display }}</span>
+                    {% endif %}
+                </div>
+                <div class="col-md-6"><strong>Status:</strong> 
+                    {% if requisicao.status == 'PENDING' %}
+                        <span class="badge bg-warning">{{ requisicao.get_status_display }}</span>
+                    {% elif requisicao.status == 'APPROVED' %}
+                        <span class="badge bg-success">{{ requisicao.get_status_display }}</span>
+                    {% else %}
+                        <span class="badge bg-secondary">{{ requisicao.get_status_display }}</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="row mb-2">
+                <div class="col-md-12"><strong>Observações:</strong> {{ requisicao.observations|default:"Nenhuma." }}</div>
+            </div>
+            <div class="row">
+                <div class="col-md-6"><strong>Data da Requisição:</strong> {{ requisicao.created_at|date:"d/m/Y H:i" }}</div>
+                <div class="col-md-6"><strong>Última Atualização:</strong> {{ requisicao.updated_at|date:"d/m/Y H:i" }}</div>
+            </div>
+        </div>
+    </div>
+
+    <h5 class="mt-4 mb-3">Itens Solicitados</h5>
+    <div class="table-responsive-wrapper">
+        <table class="table table-dark table-borderless table-hover">
+            <thead>
+                <tr>
+                    <th>Item</th>
+                    <th>Quantidade</th>
+                    <th>Categoria</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in requisicao.items.all %}
+                <tr>
+                    <td>{{ item.item_requested }}</td>
+                    <td>{{ item.quantify }}</td>
+                    <td>{{ item.get_category_display }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="3" class="text-center">Nenhum item encontrado para esta requisição.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="mt-4">
+        <a href="{% url 'core:listar_requisicoes' %}" class="btn btn-secondary">Voltar para Requisições</a>
+        {% if requisicao.status == 'PENDING' and requisicao.requester == user %}
+            <a href="{% url 'core:excluir_requisicao' requisicao.id %}" class="btn btn-danger">Excluir Requisição</a>
+        {% endif %}
+    </div>
+</main>
+{% endblock %}

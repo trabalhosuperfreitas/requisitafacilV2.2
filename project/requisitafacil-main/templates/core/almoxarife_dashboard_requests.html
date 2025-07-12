@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Atender Requisições - Almoxarife{% endblock %}
+
+{% block content %}
+    <h1>Atender Requisições Pendentes</h1>
+    <p>Visualize e valide as requisições pendentes de todos os setores.</p>
+    <div class="table-tabela">
+        <table class="table table-dark table-transparent table-hover">
+            <thead>
+                <tr>
+                    <th>Código</th>
+                    <th>Requisitante</th>
+                    <th>Setor</th>
+                    <th>Urgência</th>
+                    <th>Status</th>
+                    <th>Data da Requisição</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for req in requisicoes_pendentes %}
+                <tr>
+                    <td><a href="{% url 'core:detalhe_requisicao' req.id %}">{{ req.request_code }}</a></td>
+                    <td>{{ req.requester.get_full_name|default:req.requester.username }}</td>
+                    <td>{{ req.sector.name }}</td>
+                    <td>
+                        {% if req.urgency == 'URGENTE' %}
+                            <span class="badge bg-danger">{{ req.get_urgency_display }}</span>
+                        {% else %}
+                            <span class="badge bg-info">{{ req.get_urgency_display }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="badge bg-warning">{{ req.get_status_display }}</span>
+                    </td>
+                    <td>{{ req.created_at|date:"d/m/Y H:i" }}</td>
+                    <td>
+                        <a href="{% url 'core:almoxarife_atender_requisicao' req.id %}" class="btn btn-sm btn-primary">Atender</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center">Nenhuma requisição pendente encontrada.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}

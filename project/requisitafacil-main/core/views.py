@@ -7,9 +7,11 @@ from django.utils import timezone
 from django.db import transaction
 from .forms import RequestForm, CustomUserCreationForm, RequestItemFormSet
 from .models import Request, Role, RequestStatus, RequestItem
+from django.contrib.auth import get_user_model
 
 from django.views.decorators.http import require_POST
 import requests
+from django.urls import reverse
 
 # --- Funções Auxiliares de Permissão ---
 # Usamos essas funções para verificar o papel do usuário logado
@@ -145,8 +147,8 @@ def criar_usuario(request):
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():
             form.save()
-            messages.success(request, 'Usuário criado com sucesso!')
-            return redirect('core:listar_requisicoes')
+            messages.success(request, 'Usuário criado com sucesso! Faça login para acessar o sistema.')
+            return redirect(reverse('login'))
         else:
             messages.error(request, 'Corrija os erros abaixo.')
     else:
@@ -357,3 +359,45 @@ def gestor_dashboard(request):
         'departamentos_ativos': departamentos_ativos
     }
     return render(request, 'core/dashboard_gestor.html',context)
+
+@user_passes_test(is_gestor)
+def usuarios_list(request):
+    User = get_user_model()
+    usuarios = User.objects.all()
+    return render(request, 'core/usuarios_list.html', {'usuarios': usuarios})
+
+@user_passes_test(is_gestor)
+def usuario_create(request):
+    if request.method == 'POST':
+        form = CustomUserCreationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Usuário criado com sucesso!')
+            return redirect('core:usuarios_list')
+    else:
+        form = CustomUserCreationForm()
+    return render(request, 'core/usuario_form.html', {'form': form, 'titulo': 'Novo Usuário'})
+
+@user_passes_test(is_gestor)
+def usuario_edit(request, user_id):
+    User = get_user_model()
+    usuario = get_object_or_404(User, id=user_id)
+    if request.method == 'POST':
+        form = CustomUserCreationForm(request.POST, instance=usuario)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Usuário atualizado com sucesso!')
+            return redirect('core:usuarios_list')
+    else:
+        form = CustomUserCreationForm(instance=usuario)
+    return render(request, 'core/usuario_form.html', {'form': form, 'titulo': 'Editar Usuário'})
+
+@user_passes_test(is_gestor)
+def usuario_delete(request, user_id):
+    User = get_user_model()
+    usuario = get_object_or_404(User, id=user_id)
+    if request.method == 'POST':
+        usuario.delete()
+        messages.success(request, 'Usuário excluído com sucesso!')
+        return redirect('core:usuarios_list')
+    return render(request, 'core/usuario_confirm_delete.html', {'usuario': usuario})

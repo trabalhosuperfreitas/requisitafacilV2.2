@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block title %}Excluir Usuário{% endblock %}
+{% block content %}
+<main class="main-content">
+    <h1 class="card-title-requisicao">Excluir Usuário</h1>
+    <div class="card p-4" style="max-width: 500px; margin: 0 auto;">
+        <p>Tem certeza que deseja excluir o usuário <strong>{{ usuario.get_full_name|default:usuario.username }}</strong>?</p>
+        <form method="post">
+            {% csrf_token %}
+            <div class="d-flex justify-content-end mt-3">
+                <button type="submit" class="btn btn-danger me-2">Excluir</button>
+                <a href="{% url 'core:usuarios_list' %}" class="btn btn-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</main>
+{% endblock %} 

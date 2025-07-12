@@ -17,4 +17,8 @@ urlpatterns = [
     path('almoxarife/dashboard/', views.almoxarife_dashboard, name='almoxarife_dashboard'),
     path('almoxarife/atender_requisicao/<uuid:pk>/', views.almoxarife_atender_requisicao, name='almoxarife_atender_requisicao'),
     path('gestor/dashboard/', views.gestor_dashboard, name='gestor_dashboard'),
+    path('configuracoes/usuarios/', views.usuarios_list, name='usuarios_list'),
+    path('configuracoes/usuarios/novo/', views.usuario_create, name='usuario_create'),
+    path('configuracoes/usuarios/<uuid:user_id>/editar/', views.usuario_edit, name='usuario_edit'),
+    path('configuracoes/usuarios/<uuid:user_id>/excluir/', views.usuario_delete, name='usuario_delete'),
 ]

@@ -12,6 +12,11 @@
 
     {% load static %}
     <link rel="stylesheet" href="{% static 'style.css' %}">
+    <style>
+        .submenu { display: none; }
+        .submenu.show { display: block; }
+        .menu-link[aria-expanded="true"] { font-weight: bold; }
+    </style>
     {% block extra_css %}{% endblock %}
 </head>
 <body>
@@ -103,6 +108,34 @@
                     </li>
                     {% endif %}
                 </ul>
+                {% if user.is_authenticated and user.role == 'Gestor' %}
+                <li class="menu-item">
+                    <div class="menu-link" style="cursor: pointer;" tabindex="0" aria-expanded="false" onclick="const submenu = this.nextElementSibling; submenu.classList.toggle('show'); this.setAttribute('aria-expanded', submenu.classList.contains('show'));">
+                        <div class="icon-container">
+                            <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm1 14.93V17a1 1 0 0 1-2 0v-2.07A8.001 8.001 0 0 1 4.07 13H2a1 1 0 0 1 0-2h2.07A8.001 8.001 0 0 1 11 4.07V2a1 1 0 0 1 2 0v2.07A8.001 8.001 0 0 1 19.93 11H22a1 1 0 0 1 0 2h-2.07A8.001 8.001 0 0 1 13 19.93z"/>
+                            </svg>
+                        </div>
+                        <span>Configurações</span>
+                        <svg class="arrow-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <polyline points="9,18 15,12 9,6"/>
+                        </svg>
+                    </div>
+                    <ul class="menu-list submenu" style="margin-left: 30px;">
+                        <li class="menu-item">
+                            <a href="{% url 'core:usuarios_list' %}" class="menu-link">
+                                <div class="icon-container">
+                                    <svg class="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                        <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5s-3 1.34-3 3 1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05C15.64 13.36 17 14.28 17 15.5V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
+                                    </svg>
+                                </div>
+                                <span>Usuários</span>
+                            </a>
+                        </li>
+                        <!-- Outros submenus de configurações podem ser adicionados aqui -->
+                    </ul>
+                </li>
+                {% endif %}
                 <!-- Botão de Logout -->
                 <li class="menu-item">
                     <form method="post" action="{% url 'logout' %}?next=/accounts/login" style="margin: 0;">

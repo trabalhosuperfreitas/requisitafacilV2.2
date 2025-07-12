@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block title %}Usuários - Configurações{% endblock %}
+{% block content %}
+<main class="main-content">
+    <h1 class="card-title-requisicao">Usuários Cadastrados</h1>
+    <div class="d-flex justify-content-end mb-3">
+        <a href="{% url 'core:usuario_create' %}" class="btn btn-success">
+            <i class="fas fa-user-plus me-2"></i>Novo Usuário
+        </a>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-dark table-hover">
+            <thead>
+                <tr>
+                    <th>Usuário</th>
+                    <th>Email</th>
+                    <th>Papel</th>
+                    <th>Setor</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for usuario in usuarios %}
+                <tr>
+                    <td>{{ usuario.get_full_name|default:usuario.username }}</td>
+                    <td>{{ usuario.email }}</td>
+                    <td>{{ usuario.get_role_display }}</td>
+                    <td>{{ usuario.sector.name|default:'-' }}</td>
+                    <td>
+                        <a href="{% url 'core:usuario_edit' usuario.id %}" class="btn btn-sm btn-info">Editar</a>
+                        <a href="{% url 'core:usuario_delete' usuario.id %}" class="btn btn-sm btn-danger">Excluir</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</main>
+{% endblock %} 

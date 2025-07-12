@@ -140,7 +140,6 @@ def excluir_requisicao(request,pk):
         messages.error(request, 'Você não tem permissão para excluir esta requisição ou ela não está mais pendente.')
         return redirect('core:listar_requisicoes')
 
-@login_required
 def criar_usuario(request):
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)

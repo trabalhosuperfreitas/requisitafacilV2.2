@@ -688,7 +688,7 @@ LOGGING = {
 
 ## 📝 Changelog
 
-### Versão 1.0.0 (Dezembro 2024)
+### Versão 1.2.5 (Julho de 2025)
 - ✅ Sistema básico de requisições
 - ✅ Perfis de usuário (Gestor, Almoxarife, Encarregado)
 - ✅ Dashboard com KPIs

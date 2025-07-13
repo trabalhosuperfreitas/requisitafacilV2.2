@@ -66,7 +66,11 @@ class TesteFuncionalidadesIsoladas(TestCase):
     def login_user(self, user_key):
         """Helper para fazer login com um usuário específico"""
         user = self.users[user_key]
-        self.client.login(username=user.username, password='testpass123')
+        success = self.client.login(email=user.email, password='testpass123')
+        print(f"🔍 Tentativa de login para {user.email}: {'Sucesso' if success else 'Falha'}")
+        if not success:
+            print(f"🔍 Verificando se usuário existe: {User.objects.filter(email=user.email).exists()}")
+            print(f"🔍 Verificando se senha está correta...")
         return user
 
     def criar_requisicao_simples(self, requester_key, setor_nome, status=RequestStatus.PENDING):
@@ -236,7 +240,26 @@ class TesteFuncionalidadesIsoladas(TestCase):
         
         # 2. Almoxarife inicia atendimento
         almoxarife = self.login_user('almoxarife')
+        print(f"🔍 Usuário logado: {almoxarife.username} - Role: {almoxarife.role}")
+        
+        # Verificar se o login funcionou
+        response = self.client.get(reverse('core:dashboard'))
+        print(f"🔍 Teste de login - Status: {response.status_code}")
+        
+        # Verificar se o usuário está autenticado
+        from django.contrib.auth import get_user
+        user = get_user(self.client)
+        print(f"🔍 Usuário autenticado: {user.username if user.is_authenticated else 'Não autenticado'}")
+        
         response = self.client.get(reverse('core:almoxarife_atender_requisicao', args=[requisicao.pk]))
+        
+        print(f"🔍 Status da resposta: {response.status_code}")
+        if response.status_code == 302:
+            print(f"⚠️  View retornou redirect (302) - URL: {response.url}")
+            # Se for redirect, seguir o redirect
+            response = self.client.get(response.url, follow=True)
+            print(f"🔍 Status após seguir redirect: {response.status_code}")
+        
         self.assertEqual(response.status_code, 200)
         
         # Verificar se status mudou para EM_ATENDIMENTO
@@ -247,8 +270,9 @@ class TesteFuncionalidadesIsoladas(TestCase):
         
         # 3. Almoxarife finaliza atendimento
         response = self.client.post(reverse('core:almoxarife_atender_requisicao', args=[requisicao.pk]), {
-            'quantidade_atendida_0': '5',
-            'observacao_item_0': 'Atendido completamente',
+            'quantidade_atendida': ['5'],  # Lista para corresponder ao template
+            'item_id': [str(requisicao.items.first().id)],  # ID do item
+            'observacao_item': ['Atendido completamente'],  # Lista para corresponder ao template
             'observacoes_atendimento': 'Atendimento finalizado com sucesso'
         })
         

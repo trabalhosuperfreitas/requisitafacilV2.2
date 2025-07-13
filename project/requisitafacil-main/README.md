@@ -501,17 +501,20 @@ source venv/bin/activate
 # 4. Instale dependências
 pip install -r requirements.txt
 
-# 5. Configure variáveis de ambiente (opcional)
+# 5. Instale dependências para tempo real (opcional)
+pip install uvicorn fastapi
+
+# 6. Configure variáveis de ambiente (opcional)
 # Crie um arquivo .env com suas configurações
 
-# 6. Execute migrações
+# 7. Execute migrações
 python manage.py migrate
 
-# 7. Crie superusuário
+# 8. Crie superusuário
 python manage.py createsuperuser
 
-# 8. Execute o servidor
-python manage.py runserver
+# 9. Execute os servidores
+python start_servers.py
 ```
 
 ### 3. **Configuração de Produção**
@@ -539,7 +542,34 @@ SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 ```
 
-### 4. **Configuração de Email**
+### 4. **Sistema de Atualizações em Tempo Real**
+
+O sistema possui um servidor FastAPI separado para atualizações em tempo real via WebSocket.
+
+**Iniciar ambos os servidores:**
+```bash
+# Opção 1: Script automático (recomendado)
+python start_servers.py
+
+# Opção 2: Manualmente
+# Terminal 1 - Django:
+python manage.py runserver 8000
+
+# Terminal 2 - FastAPI:
+python -m uvicorn realtime_server:app --host 0.0.0.0 --port 8001 --reload
+```
+
+**Testar comunicação:**
+```bash
+python test_realtime.py
+```
+
+**Como funciona:**
+1. Django envia notificações para FastAPI quando requisições são criadas/atualizadas
+2. FastAPI distribui as notificações via WebSocket para todos os clientes conectados
+3. Frontend recebe as notificações e atualiza automaticamente a lista de requisições
+
+### 5. **Configuração de Email**
 
 **Para notificações** (`settings.py`):
 ```python

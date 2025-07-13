@@ -66,8 +66,11 @@ def criar_requisicao(request):
 
             # Notifica FastAPI para atualizar clientes
             try:
-                requests.post('http://localhost:8001/notify', json={"action": "created"})
-            except Exception:
+                response = requests.post('http://localhost:8001/notify', 
+                                      json={"action": "created", "message": "Nova requisição criada"})
+                print(f"Notificação enviada: {response.status_code}")
+            except Exception as e:
+                print(f"Erro ao enviar notificação: {e}")
                 pass
 
             messages.success(request, 'Requisição criada com sucesso!')
@@ -311,8 +314,11 @@ def almoxarife_atender_requisicao(request, pk):
 
             # Notifica FastAPI para atualizar clientes
             try:
-                requests.post('http://localhost:8001/notify', json={"action": "finalized"})
-            except Exception:
+                response = requests.post('http://localhost:8001/notify', 
+                                      json={"action": "finalized", "message": "Requisição finalizada"})
+                print(f"Notificação enviada: {response.status_code}")
+            except Exception as e:
+                print(f"Erro ao enviar notificação: {e}")
                 pass
 
             messages.success(request, f'Requisição {requisicao.request_code} finalizada com sucesso!')

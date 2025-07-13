@@ -44,49 +44,47 @@
         <div class="card-value">{{ pct_no_prazo }}%</div>
         <div class="card-desc">Até 24h</div>
     </div>
-    <div class="card">
-        <div class="card-title">Setor Top</div>
-        <div class="card-value">{{ setor_top }}</div>
-        <div class="card-desc">Mais requisitou</div>
+</div>
+
+<!-- Segunda linha: 2 gráficos -->
+<div class="dashboard-graphs-row row-2 mb-4">
+    <div class="card p-3">
+        <h5 class="mb-3">Requisições por Setor (30 dias)</h5>
+        <canvas id="setoresChart"></canvas>
     </div>
-    <div class="card">
-        <div class="card-title">Usuário Top</div>
-        <div class="card-value">{{ user_top }}</div>
-        <div class="card-desc">Mais requisitou</div>
+    <div class="card p-3">
+        <h5 class="mb-3">Distribuição por Status</h5>
+        <canvas id="statusChart"></canvas>
     </div>
 </div>
 
-<!-- Gráficos -->
-<div class="row mb-4">
-    <div class="col-md-6 mb-4">
-        <div class="card p-3">
-            <h5 class="mb-3">Requisições por Setor (30 dias)</h5>
-            <canvas id="setoresChart"></canvas>
-        </div>
+<!-- Terceira linha: 3 gráficos -->
+<div class="dashboard-graphs-row row-3 mb-4">
+    <div class="card p-3">
+        <h5 class="mb-3">Evolução Diária (Mês)</h5>
+        <canvas id="evolucaoChart"></canvas>
     </div>
-    <div class="col-md-6 mb-4">
-        <div class="card p-3">
-            <h5 class="mb-3">Distribuição por Status</h5>
-            <canvas id="statusChart"></canvas>
-        </div>
+    <div class="card p-3">
+        <h5 class="mb-3">Top 5 Usuários</h5>
+        <canvas id="topUsersChart"></canvas>
     </div>
-    <div class="col-md-6 mb-4">
-        <div class="card p-3">
-            <h5 class="mb-3">Evolução Diária (Mês)</h5>
-            <canvas id="evolucaoChart"></canvas>
-        </div>
+    <div class="card p-3">
+        <h5 class="mb-3">Categorias Mais Requisitadas (30 dias)</h5>
+        <canvas id="categoriasChart"></canvas>
     </div>
-    <div class="col-md-6 mb-4">
-        <div class="card p-3">
-            <h5 class="mb-3">Top 5 Usuários</h5>
-            <canvas id="topUsersChart"></canvas>
-        </div>
+</div>
+
+<!-- Quarta linha: 2 cards extras (Setor Top e Usuário Top) -->
+<div class="dashboard-graphs-row row-2 mb-4">
+    <div class="card p-3">
+        <h5 class="mb-3">Setor Top</h5>
+        <div class="card-value">{{ setor_top }}</div>
+        <div class="card-desc">Mais requisitou</div>
     </div>
-    <div class="col-md-6 mb-4">
-        <div class="card p-3">
-            <h5 class="mb-3">Categorias Mais Requisitadas (30 dias)</h5>
-            <canvas id="categoriasChart"></canvas>
-        </div>
+    <div class="card p-3">
+        <h5 class="mb-3">Usuário Top</h5>
+        <div class="card-value">{{ user_top }}</div>
+        <div class="card-desc">Mais requisitou</div>
     </div>
 </div>
 

@@ -44,21 +44,25 @@
         <table class="table table-dark table-transparent table-hover">
             <thead>
                 <tr>
-                    <th>Código</th>
-                    <th>Requisitante</th>
-                    <th>Setor</th>
-                    <th>Urgência</th>
-                    <th>Status</th>
-                    <th>Data da Requisição</th>
-                    <th>Ações</th>
+                    <th class="text-truncate">Código</th>
+                    <th class="text-truncate">Requisitante</th>
+                    <th class="text-truncate">Setor</th>
+                    <th class="text-truncate">Urgência</th>
+                    <th class="text-truncate">Status</th>
+                    <th class="text-truncate hide-mobile">Data da Requisição</th>
+                    <th class="text-truncate">Ações</th>
                 </tr>
             </thead>
             <tbody id="requisicoes-tbody">
                 {% for req in requisicoes %}
                 <tr>
-                    <td><a href="{% url 'core:detalhe_requisicao' req.id %}">{{ req.request_code }}</a></td>
-                    <td>{{ req.requester.get_full_name|default:req.requester.username }}</td>
-                    <td>{{ req.sector.name }}</td>
+                    <td class="text-truncate">
+                        <a href="{% url 'core:detalhe_requisicao' req.id %}" title="{{ req.request_code }}">{{ req.request_code }}</a>
+                    </td>
+                    <td class="text-truncate" title="{{ req.requester.get_full_name|default:req.requester.username }}">
+                        {{ req.requester.get_full_name|default:req.requester.username }}
+                    </td>
+                    <td class="text-truncate" title="{{ req.sector.name }}">{{ req.sector.name }}</td>
                     <td>
                         {% if req.urgency == 'URGENTE' %}
                             <span class="badge bg-danger">{{ req.get_urgency_display }}</span>
@@ -77,24 +81,26 @@
                             <span class="badge bg-secondary">{{ req.get_status_display }}</span>
                         {% endif %}
                     </td>
-                    <td>{{ req.created_at|date:"d/m/Y H:i" }}</td>
+                    <td class="hide-mobile">{{ req.created_at|date:"d/m/Y H:i" }}</td>
                     <td>
-                        <a href="{% url 'core:detalhe_requisicao' req.id %}" class="btn btn-sm btn-info">Detalhes</a>
-                        
-                        {% if user.role == 'Almoxarife' %}
-                            {% if req.status == 'PENDING' %}
-                                <form action="{% url 'core:iniciar_atendimento_requisicao' req.id %}" method="post" style="display: inline;">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn btn-sm btn-primary">Iniciar Atendimento</button>
-                                </form>
-                            {% elif req.status == 'EM_ATENDIMENTO' and req.atendido_por == user %}
-                                <a href="{% url 'core:almoxarife_atender_requisicao' req.id %}" class="btn btn-sm btn-success">Continuar Atendimento</a>
+                        <div class="d-flex flex-wrap gap-1">
+                            <a href="{% url 'core:detalhe_requisicao' req.id %}" class="btn btn-sm btn-info">Detalhes</a>
+                            
+                            {% if user.role == 'Almoxarife' %}
+                                {% if req.status == 'PENDING' %}
+                                    <form action="{% url 'core:iniciar_atendimento_requisicao' req.id %}" method="post" style="display: inline;">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-primary">Iniciar</button>
+                                    </form>
+                                {% elif req.status == 'EM_ATENDIMENTO' and req.atendido_por == user %}
+                                    <a href="{% url 'core:almoxarife_atender_requisicao' req.id %}" class="btn btn-sm btn-success">Continuar</a>
+                                {% endif %}
                             {% endif %}
-                        {% endif %}
 
-                        {% if req.status == 'PENDING' and req.requester == user %}
-                            <a href="{% url 'core:excluir_requisicao' req.id %}" class="btn btn-sm btn-danger">Excluir</a>
-                        {% endif %}
+                            {% if req.status == 'PENDING' and req.requester == user %}
+                                <a href="{% url 'core:excluir_requisicao' req.id %}" class="btn btn-sm btn-danger">Excluir</a>
+                            {% endif %}
+                        </div>
                     </td>
                 </tr>
                 {% endfor %}

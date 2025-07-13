@@ -287,7 +287,7 @@ html, body {
   color: #fff;
   width: calc(100vw - 260px);
   min-height: 100vh;
-  padding: 32px 40px;
+  padding: 32px 0px;
   overflow-x: auto;
   box-sizing: border-box;
   margin-left: 260px;
@@ -332,10 +332,13 @@ html, body {
   margin-bottom: 32px;
 }
 .cards-container .card {
-  min-width: 0;
+  min-width: 0 !important;
+  max-width: 100%;
+  flex: none !important;
   min-height: 54px;
   padding: 10px 2px;
   font-size: 0.78rem;
+  box-sizing: border-box;
 }
 .card-title {
   font-size: 0.72rem;

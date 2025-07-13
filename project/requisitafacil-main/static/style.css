@@ -285,7 +285,7 @@ html, body {
   flex: 1;
   background: #111;
   color: #fff;
-  width: 100vw;
+  width: 95vw; /* Reduzido de 100vw para 95vw */
   min-height: 100vh;
   padding: 5px;
   overflow-x: auto;
@@ -326,15 +326,15 @@ html, body {
 .cards-container {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 2px;
+  gap: 1.9px; /* Reduzido de 2px para 1.9px (5% menos) */
   margin-bottom: 8px;
 }
 .cards-container .card {
   min-width: 0 !important;
-  max-width: 100%;
+  max-width: 95%; /* Reduzido de 100% para 95% */
   flex: none !important;
-  min-height: 20px;
-  padding: 2px 0;
+  min-height: 19px; /* Reduzido de 20px para 19px (5% menos) */
+  padding: 1.9px 0; /* Reduzido de 2px para 1.9px */
   font-size: 0.55rem;
   box-sizing: border-box;
 }
@@ -371,7 +371,7 @@ html, body {
 
 .dashboard-graphs-row {
   display: grid;
-  gap: 24px;
+  gap: 23px; /* Reduzido de 24px para 23px (5% menos) */
   margin-bottom: 32px;
 }
 .dashboard-graphs-row.row-2 {
@@ -391,15 +391,15 @@ html, body {
   background: #181818;
   border: 1px solid #333;
   border-radius: 14px;
-  padding: 18px 14px;
-  min-width: 120px;
-  min-height: 60px;
+  padding: 17px 13px; /* Reduzido de 18px 14px para 17px 13px (5% menos) */
+  min-width: 114px; /* Reduzido de 120px para 114px (5% menos) */
+  min-height: 57px; /* Reduzido de 60px para 57px (5% menos) */
   font-size: 0.98rem;
   color: #fff;
   box-shadow: 0 2px 8px 0 #0002;
   transition: transform 0.2s, box-shadow 0.2s;
   flex: 1;
-  min-width: 200px;
+  min-width: 190px; /* Reduzido de 200px para 190px (5% menos) */
 }
 
 .card:hover {
@@ -412,6 +412,7 @@ html, body {
   color: #b3b3b3;
   margin-bottom: 8px;
   font-weight: 600;
+  text-align: center;
 }
 
 .card-icon {
@@ -425,6 +426,7 @@ html, body {
   font-weight: 700;
   color: #fff;
   margin-bottom: 4px;
+  text-align: center;
 }
 
 .card-desc {
@@ -507,10 +509,10 @@ html, body {
   background: #181818;
   border: 1px solid #333;
   border-radius: 14px;
-  padding: 20px 18px;
+  padding: 19px 17px; /* Reduzido de 20px 18px para 19px 17px (5% menos) */
   margin-bottom: 24px;
   box-shadow: 0 2px 8px 0 #0002;
-  min-height: 320px;
+  min-height: 304px; /* Reduzido de 320px para 304px (5% menos) */
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -519,8 +521,8 @@ html, body {
 
 .cards-container {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 24px;
+  grid-template-columns: repeat(auto-fit, minmax(209px, 1fr)); /* Reduzido de 220px para 209px (5% menos) */
+  gap: 23px; /* Reduzido de 24px para 23px (5% menos) */
   margin-bottom: 30px;
 }
 
@@ -1150,4 +1152,35 @@ body.signup-page {
 }
 #statusChart {
   max-height: 320px !important;
+}
+
+/* Cards menores para Setor Top e Usuário Top */
+.card.compact {
+  min-height: unset !important;
+  height: auto !important;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-self: flex-start;
+}
+
+.dashboard-graphs-row.row-2.mb-4 {
+  align-items: flex-start !important;
+  /* Permite altura automática para as linhas da grid */
+  grid-auto-rows: min-content;
+}
+
+.card.compact h5 {
+  font-size: 0.8rem; /* Reduzido de 0.9rem para 0.8rem */
+  margin-bottom: 8px; /* Reduzido de 10px para 8px */
+}
+
+.card.compact .card-value {
+  font-size: 1.1rem; /* Reduzido de 1.2rem para 1.1rem */
+  margin-bottom: 4px; /* Reduzido de 8px para 4px */
+}
+
+.card.compact .card-desc {
+  font-size: 0.65rem; /* Reduzido de 0.7rem para 0.65rem */
 }

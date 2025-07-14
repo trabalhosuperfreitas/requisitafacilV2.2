@@ -674,13 +674,13 @@ LOGGING = {
 ## 📞 Suporte e Contato
 
 ### **Canais de Suporte**
-- **E-mail**: suporte@requisitafacil.com
+- **E-mail**: diiegof@live.com
 - **GitHub Issues**: [Abrir issue](https://github.com/seuusuario/requisitafacil/issues)
 - **Documentação**: Este README e arquivos de documentação
 
 ### **Informações do Projeto**
-- **Versão**: 1.0.0
-- **Última Atualização**: Dezembro 2024
+- **Versão**: 1.2.5
+- **Última Atualização**: Julho de 2025
 - **Licença**: MIT
 - **Desenvolvedor**: Equipe RequisitaFácil
 

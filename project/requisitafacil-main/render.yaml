@@ -3,7 +3,10 @@ services:
     name: requisita-facil-web
     env: python
     buildCommand: "pip install -r requirements.txt"
-    startCommand: "gunicorn requisita_facil.wsgi:application --bind 0.0.0.0:10000"
+    startCommand: |
+      python manage.py makemigrations &&
+      python manage.py migrate &&
+      waitress-serve --bind=0.0.0.0:10000 requisita_facil.wsgi:application
     envVars:
       - key: DJANGO_SETTINGS_MODULE
         value: requisita_facil.settings
@@ -13,6 +16,8 @@ services:
         value: "False"
       - key: ALLOWED_HOSTS
         value: ".onrender.com"
+      - key: DATABASE_URL
+        sync: false
     plan: free
     autoDeploy: true
     region: oregon 

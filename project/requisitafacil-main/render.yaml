@@ -2,7 +2,7 @@ services:
   - type: web
     name: requisita-facil-web
     env: python
-    buildCommand: "pip install -r requirements.txt"
+    buildCommand: "pip install --upgrade pip && pip install -r requirements.txt"
     startCommand: "python manage.py collectstatic --no-input && python manage.py makemigrations && python manage.py migrate && gunicorn requisita_facil.wsgi:application --bind 0.0.0.0:$PORT"
     plan: free
     autoDeploy: true

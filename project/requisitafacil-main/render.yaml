@@ -3,7 +3,7 @@ services:
     name: requisita-facil-web
     env: python
     buildCommand: "pip install --upgrade pip && pip install -r requirements.txt"
-    startCommand: "python manage.py collectstatic --no-input && python manage.py makemigrations && python manage.py migrate && gunicorn requisita_facil.wsgi:application --bind 0.0.0.0:$PORT"
+    startCommand: "export PATH=$PATH:/usr/local/python3/bin && pip install gunicorn && python manage.py collectstatic --no-input && python manage.py makemigrations && python manage.py migrate && gunicorn requisita_facil.wsgi:application --bind 0.0.0.0:$PORT"
     plan: free
     autoDeploy: true
     region: oregon

@@ -1,0 +1,13 @@
+# Configurações de Desenvolvimento Local
+# Copie este conteúdo para um arquivo .env na raiz do projeto
+
+DEBUG=True
+SECRET_KEY=chave_insegura_para_desenvolvimento_local
+DATABASE_URL=sqlite:///db.sqlite3
+ALLOWED_HOSTS=localhost,127.0.0.1
+
+# Configurações de Produção (comentar em desenvolvimento)
+# DEBUG=False
+# SECRET_KEY=sua_chave_secreta_aqui
+# DATABASE_URL=postgresql://usuario:senha@localhost:5432/banco
+# ALLOWED_HOSTS=seu-dominio.com,www.seu-dominio.com 
